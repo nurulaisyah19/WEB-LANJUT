@@ -2,52 +2,43 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Kelas;
-use App\Models\UserModel;
 use Illuminate\Http\Request;
+use App\Models\UserModel;
+use App\Models\Kelas;
 
 class UserController extends Controller
 {
-    public $userModel;
-    public $kelasModel;
-
-    public function __construct()
-    {
-        $this->userModel = new UserModel();
-        $this->kelasModel = new Kelas();
-    }
-
-    // ✅ Method index untuk ambil data user
+    // 🔹 Menampilkan daftar user
     public function index()
     {
-        $data = [
-            'title' => 'List User',
-            'users' => $this->userModel->getUser(),
-        ];
-
-        return view('list_user', $data);
+        $users = UserModel::with('kelas')->get();
+        $title = 'Daftar Pengguna';
+        return view('users.index', compact('users', 'title'));
     }
 
+    // 🔹 Menampilkan form tambah user baru
     public function create()
     {
-        $kelas = $this->kelasModel->getKelas();
-
-        $data = [
-            'title' => 'Create User',
-            'kelas' => $kelas,
-        ];
-
-        return view('create_user', $data);
+        $kelas = Kelas::all(); // <-- ini bagian penting
+        $title = 'Buat Pengguna Baru';
+        return view('users.create', compact('kelas', 'title'));
     }
 
+    // 🔹 Simpan data user baru
     public function store(Request $request)
     {
-        $this->userModel->create([
-            'nama'     => $request->input('nama'),
-            'nim'      => $request->input('npm'),
-            'kelas_id' => $request->input('kelas_id'),
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'nim' => 'required|string|max:50|unique:users,nim',
+            'kelas_id' => 'required|exists:kelas,id',
         ]);
 
-        return redirect()->to('/user');
+        UserModel::create([
+            'nama' => $request->nama,
+            'nim' => $request->nim,
+            'kelas_id' => $request->kelas_id,
+        ]);
+
+        return redirect()->route('users.index')->with('success', 'Pengguna berhasil ditambahkan.');
     }
 }

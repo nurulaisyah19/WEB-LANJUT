@@ -1,3 +1,5 @@
-<footer class="bg-dark text-white text-center py-3 mt-4">
-    <p>&copy; {{ date('Y') }} LaravelApp - All Rights Reserved</p>
+<footer class="py-4 mt-5 bg-white text-muted border-top">
+<div class="container text-center">
+<small>© {{ date('Y') }} - Jurusan Ilmu Komputer, Universitas Lampung</small>
+</div>
 </footer>
