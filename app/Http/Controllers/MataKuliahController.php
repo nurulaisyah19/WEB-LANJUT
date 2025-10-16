@@ -3,37 +3,48 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Matakuliah;
+use App\Models\MataKuliah;
 
 class MataKuliahController extends Controller
 {
+    // Tampilkan semua data
     public function index()
     {
-        $data = [
-            'title' => 'List Mata Kuliah',
-            'mks' => Matakuliah::all(),
-        ];
-
-        return view('list_mk', $data);
+        $mks = MataKuliah::all();
+        $title = 'Daftar Mata Kuliah';
+        return view('list_mk', compact('mks', 'title'));
     }
 
-    public function create()
+    // Tampilkan form edit
+    public function edit($id)
     {
-        return view('create_mk', ['title' => 'Create Mata Kuliah']);
+        $mk = MataKuliah::findOrFail($id);
+        return view('edit_mk', compact('mk'));
     }
 
-    public function store(Request $request)
+    // Proses update data
+    public function update(Request $request, $id)
     {
         $request->validate([
-            'nama_mk' => 'required|string|max:100',
-            'sks' => 'required|integer|min:1',
+            'nama_mk' => 'required',
+            'sks' => 'required|integer|min:1|max:6',
         ]);
 
-        Matakuliah::create([
-            'nama_mk' => $request->nama_mk,
-            'sks' => $request->sks,
+        $mk = MataKuliah::findOrFail($id);
+        $mk->update([
+            'nama_mk' => $request->input('nama_mk'),
+            'sks' => $request->input('sks'),
         ]);
 
-        return redirect('/matakuliah')->with('success', 'Data berhasil disimpan!');
+        return redirect()->route('matakuliah.index')->with('success', 'Data berhasil diperbarui!');
+    }
+
+    // Proses hapus data
+    public function destroy($id)
+    {
+        $mk = MataKuliah::findOrFail($id);
+        $mk->delete();
+
+        return redirect()->route('matakuliah.index')->with('success', 'Data berhasil dihapus!');
     }
 }

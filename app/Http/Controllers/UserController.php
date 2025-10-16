@@ -3,42 +3,65 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\UserModel;
-use App\Models\Kelas;
+use App\Models\User;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
-    // 🔹 Menampilkan daftar user
     public function index()
     {
-        $users = UserModel::with('kelas')->get();
-        $title = 'Daftar Pengguna';
-        return view('users.index', compact('users', 'title'));
+        $users = User::all();
+        return view('users.index', compact('users'));
     }
 
-    // 🔹 Menampilkan form tambah user baru
     public function create()
     {
-        $kelas = Kelas::all(); // <-- ini bagian penting
-        $title = 'Buat Pengguna Baru';
-        return view('users.create', compact('kelas', 'title'));
+        return view('users.create');
     }
 
-    // 🔹 Simpan data user baru
     public function store(Request $request)
     {
         $request->validate([
-            'nama' => 'required|string|max:255',
-            'nim' => 'required|string|max:50|unique:users,nim',
-            'kelas_id' => 'required|exists:kelas,id',
+            'nama' => 'required',
+            'email' => 'required|email|unique:users,email',
         ]);
 
-        UserModel::create([
+        User::create([
+            'id' => (string) Str::uuid(),
             'nama' => $request->nama,
-            'nim' => $request->nim,
-            'kelas_id' => $request->kelas_id,
+            'email' => $request->email,
+            'password' => bcrypt('password'),
         ]);
 
-        return redirect()->route('users.index')->with('success', 'Pengguna berhasil ditambahkan.');
+        return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan!');
+    }
+
+    public function edit($id)
+    {
+        $user = User::findOrFail($id);
+        return view('users.edit', compact('user'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $request->validate([
+            'nama' => 'required',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+        ]);
+
+        $user->update([
+            'nama' => $request->nama,
+            'email' => $request->email,
+        ]);
+
+        return redirect()->route('users.index')->with('success', 'User berhasil diperbarui!');
+    }
+
+    public function destroy($id)
+    {
+        User::findOrFail($id)->delete();
+        return redirect()->route('users.index')->with('success', 'User berhasil dihapus!');
     }
 }
